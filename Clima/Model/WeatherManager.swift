@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Alamofire
 
 struct WeatherManager {
     var delegate: WeatherManagerDelegate?
@@ -25,22 +26,16 @@ struct WeatherManager {
     }
     
     func performRequest(_ urlString: String) {
-        if let url = URL(string: urlString) {
-            let session = URLSession(configuration: .default)
-            let task = session.dataTask(with: url) { data, response, error in
-                if error != nil {
-                    print(error!)
-                    return
-                }
-                
-                if let safeData = data {
-                    if let weather = parseJSON(weatherData: safeData) {
-                        delegate?.weatherDidUpdate(weather: weather)
-                    }
+        AF.request(urlString).response { response in
+            if let error = response.error {
+                print(error)
+                return
+            }
+            if let safeData = response.data {
+                if let weather = parseJSON(weatherData: safeData) {
+                    delegate?.weatherDidUpdate(weather: weather)
                 }
             }
-            
-            task.resume()
         }
     }
     
